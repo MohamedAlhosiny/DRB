@@ -1,29 +1,19 @@
 <?php
-/*
+
 namespace App\Http\Controllers\Api;
-
+use App\Models\Category;
 use Illuminate\Http\Request;
-*/
-
-//===
-namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
-use App\Models\Product;
-use Illuminate\Container\Attributes\Auth;
-use Illuminate\Http\Request;
 
-class ProductController extends Controller
+
+class CategoryController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-
-        $product = Product::all();
-        // dd($product);
-        return view('products.index')->with('product' , $product);
-
+        //
     }
 
     /**
@@ -31,7 +21,7 @@ class ProductController extends Controller
      */
     public function create()
     {
-        return view('products.create');
+        //
     }
 
     /**
@@ -39,7 +29,7 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-
+        //
     }
 
     /**

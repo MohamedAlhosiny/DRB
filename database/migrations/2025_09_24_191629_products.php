@@ -15,7 +15,7 @@ return new class extends Migration
 
             $table->id();
             $table->string('name');
-            $table->text('desc');
+            $table->text('desc'); // rename in done to description and be nullable 
             $table->float('price');
             $table->unsignedBigInteger('category_id')->nullable();
             $table->foreign('category_id')->references('id')->on('categories');

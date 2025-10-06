@@ -95,7 +95,6 @@ class ProductController extends Controller
             'product' => $product,
             'success' => true,
             'status' => 200,
-
         ];
 
         return response()->json($response, 200);

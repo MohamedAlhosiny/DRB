@@ -7,17 +7,17 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
-3 models => 1-category , 2- product , 3- orders
+4 models => 1-category , 2- product , 3- orders , 4- users;
 
-relationship => categoty : product &&  product : order
+relationship => categoty : product &&  product : order && users:order;
 
-categry has many products , and the product can be ordered by clients ;
+categry has many products , and the product can be ordered by clients , users can make many orders;
 
 sush as :Category = Cosmetics => Product = body lotion , body splash , skin care .....
 
 orders => has orderd date ;
 
-
+user => has data about them;
 ## About Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:

@@ -7,15 +7,27 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\api\ProductController;
 use App\Http\Controllers\Api\UserController;
 use App\Models\Product;
+use Phiki\Phast\Root;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
+
+
 Route::prefix('/user')->group(function () {
     Route::post('/register' , [UserController::class , 'store']);
+    Route::post('/login' , [UserController::class , 'login']);
+
+    Route::middleware('auth:sanctum')->group(function () {
+
+    Route::get('/logout' , [UserController::class , 'logout']);
+});
+
 
 
 });
+
+
 
 
 // Route::get('/product' , [ProductController::class , "index"])->name('product.index');

@@ -27,7 +27,7 @@ public function store(userRequest $request) {
 
     if($userRegister) {
         $response = [
-            'message' => 'Hello ' . $userRegister -> name . " in our App",
+            'message' => 'Hello user ' . $userRegister -> name . " in our App",
             'data' => [$userRegister->name ,
             $userRegister->email],
             'success' => true,

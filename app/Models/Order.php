@@ -7,9 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 class Order extends Model
 {
     public $fillable = [
-        'order_id' ,
+        'order_date' ,
         'points',
-        'user_id'
+        'user_id',
+        'totalPrice'
     ];
 
     public function products() {
@@ -21,4 +22,5 @@ class Order extends Model
     public function user(){
         return $this->belongsTo(User::class , 'user_id');
     }
+
 }

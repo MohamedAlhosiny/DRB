@@ -15,6 +15,7 @@ namespace App\Http\Controllers\Api;
 use App\Models\Product;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use GuzzleHttp\Handler\Proxy;
 use Illuminate\Http\Request;
 
@@ -135,6 +136,7 @@ class ProductController extends Controller
                 'price' => 'nullable'
             ]);
 
+
             // dd($request->all());
             $name = request()->name;
             $desc = request()->desc;
@@ -190,4 +192,5 @@ class ProductController extends Controller
             return response()->json($response , 200);
         }
     }
+
 }

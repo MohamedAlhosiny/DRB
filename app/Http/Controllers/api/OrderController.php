@@ -8,8 +8,11 @@
 
 namespace App\Http\Controllers\Api;
 use App\Models\Order;
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Http\Requests\orderRequest;
+use App\Http\Controllers\Controller;
+use App\Models\Product;
+use Illuminate\Support\Facades\Auth;
 
 
 
@@ -20,7 +23,8 @@ class OrderController extends Controller
      */
     public function index()
     {
-        //
+        $allOrders = Order::all();
+
     }
 
     /**
@@ -34,17 +38,71 @@ class OrderController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(orderRequest $request)
     {
-        //
+        $validOrder = $request->validated();
+        $order = Order::create([
+            'order_date' => now(),
+            'points' => 0,
+            'user_id' => Auth::user()->id,
+            'totalPrice' => 0
+        ]);
+
+        $totalPrice = 0 ;
+
+
+        //products array from orderRequest !!!!!!!!!!!!!!!!!
+        foreach($validOrder['products'] as $productData){
+            $products = Product::find($productData['product_id']);
+
+            if ( !$products || $products->status == 'unactive') {
+
+            return response()->json([
+                'message' => "product {$productData['product_id']} not available to orderd" ,
+                'success' => false ,
+                'status' => 400
+            ] , 200);
+            }
+            $quantity = $productData['quantity'];
+            $price = $products->price;
+
+            $order->products()->attach($productData['product_id'], [
+                'quantity' => $quantity,
+                'price' => $price
+            ]);
+
+            $totalPrice += $price * $quantity;
+        }
+
+        $order->update([
+            'totalPrice' => $totalPrice
+        ]);
+
+        $data = $order->products->map(function ($product) {
+            return  [
+                'product_name' => $product->name,
+                'price' => $product->price,
+                'quantity' => $product->pivot->quantity,
+                'description' => $product->description
+            ];
+        });
+
+        $response = [
+            'message' => 'order created successfully' ,
+            'success' => true ,
+            'data' => $order->load('products'),
+            // 'data' => $data, // لو محتاج داتا اقل انت متحكم فيها
+            'status' => 201
+        ];
+
+        return response() -> json($response , 200);
+
+
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Order $order)
     {
-        //
+
     }
 
     /**

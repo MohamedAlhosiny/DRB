@@ -49,34 +49,47 @@ class OrderController extends Controller
         ]);
 
         $totalPrice = 0 ;
-
+        $points = 0 ;
 
         //products array from orderRequest !!!!!!!!!!!!!!!!!
         foreach($validOrder['products'] as $productData){
+
             $products = Product::find($productData['product_id']);
+            // $products = Product::where('name' ,$productData['product_name']);
 
             if ( !$products || $products->status == 'unactive') {
 
             return response()->json([
-                'message' => "product {$productData['product_id']} not available to orderd" ,
+                'message' => "product {$products->name} not available to orderd" ,
                 'success' => false ,
                 'status' => 400
             ] , 200);
             }
-            $quantity = $productData['quantity'];
-            $price = $products->price;
-
+            $quantity = $productData['quantity']; // from request
+            $price = $products->price; // from database
+            $product_name = $products->name;
             $order->products()->attach($productData['product_id'], [
+                'product_name' => $product_name,
                 'quantity' => $quantity,
                 'price' => $price
             ]);
 
             $totalPrice += $price * $quantity;
+            if ($totalPrice >= 50) {
+                $points = $totalPrice / 50;
+            } else {
+
+                $points = 1 ;
+            }
         }
 
+
+
         $order->update([
-            'totalPrice' => $totalPrice
+            'totalPrice' => $totalPrice,
+            'points' => $points
         ]);
+
 
         $data = $order->products->map(function ($product) {
             return  [

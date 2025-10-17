@@ -8,6 +8,7 @@ use App\Models\Category;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use Dotenv\Util\Str;
+use Illuminate\Database\QueryException;
 
 class ProductController2 extends Controller
 {
@@ -66,8 +67,9 @@ class ProductController2 extends Controller
                 'status' => 404
             ] , 200);
         }
-        
-            $product = Product::create([
+        try {
+
+               $product = Product::create([
                 'name' => $request->name,
                 'description' => $request->description,
                 'price' => $request->price,
@@ -90,6 +92,28 @@ class ProductController2 extends Controller
 
             }
 
+
+
+        } catch (QueryException $e) {
+            // if duplicate entry error
+            if ( $e->errorInfo[1] == 1062) {
+                return response()->json([
+                    'message' => "Cannot store {$request->name} this product already exist" ,
+                    'success' => false ,
+                    'status' => 409
+                ] , 409);
+
+        } else {
+            return response()->json([
+                'message' => 'database error , please try again later0',
+                'error' => $e->getMessage(),
+                'success' => 500,
+                'status' => 500
+            ] , 500);
+        }
+    }
+
+
     }
 
     public function changeStatus(string $id) {
@@ -105,11 +129,26 @@ class ProductController2 extends Controller
 
         $product->save();
 
-        $productAfterUpdated = Product::find($id);
+        // $productAfterUpdated = Product::find($id);
+        // $productAfterUpdated = Product::where('id' , $id)->get();
+        $productAfterUpdated = Product::with('category')->find($id);
+
+        $data =  [
+                'product_id' => $productAfterUpdated->id ,
+                'product_name' => $productAfterUpdated->name,
+                'product_description' => $productAfterUpdated->description,
+                'product_price' => $productAfterUpdated->price,
+                'product_status' => $productAfterUpdated->status,
+                'category_id' => $productAfterUpdated->category->id,
+                'category_name' => $productAfterUpdated->category->name
+            ];
+
+
+
         $response = [
             'message' => 'status is changed successfully from ' . $oldStatus . ' to ' . $product->status,
             'success' => true ,
-            'data' => $productAfterUpdated,
+            'data' => $data,
             'status' => 200
         ];
 

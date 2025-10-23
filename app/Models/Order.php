@@ -10,7 +10,8 @@ class Order extends Model
         'order_date' ,
         'points',
         'user_id',
-        'totalPrice'
+        'totalPrice',
+        'status'
     ];
 
     public function products() {

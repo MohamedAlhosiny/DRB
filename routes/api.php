@@ -65,13 +65,24 @@ Route::middleware('auth:sanctum', 'role.admin')->group(function () {
 Route::prefix('/order')->group(function () {
     // User privileges on order
     Route::middleware('auth:sanctum', 'role.user')->group(function () {
-        Route::post('/', [OrderController::class, 'store']);
+        Route::post('/', [OrderController::class, 'store']); //User create order
+        Route::get('/myorders' , [OrderController::class , 'myorders']); // User show his orders
 
     });
 
     //Admin privileges on order
     Route::middleware('auth:sanctum' , 'role.admin')->group(function() {
         Route::get('/' , [OrderController::class , 'index']);
+        Route::patch('/{id}/statusOrder' , [OrderController::class , 'controlStatus']);
+
+
+        Route::get('/order-status' , function() {
+            return response()->json([
+                'statuses for order' => ['pending' , 'processing','completed' , 'cancelled']
+            ]);
+        });
+
+
     });
 });
 

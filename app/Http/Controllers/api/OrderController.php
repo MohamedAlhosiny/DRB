@@ -23,21 +23,55 @@ class OrderController extends Controller
      */
     public function index()
     {
-        $allOrders = Order::all();
+        $allOrders = Order::withAggregate('user' , 'name')->paginate(10);
+
+        $response = [
+            'message' => 'all orders retrieved successfully',
+            'data' => $allOrders,
+            'success' => true ,
+            'status' => 200
+        ];
+        return response()->json($response , 200);
 
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+
+    //=======================================
+
+
+    public function myorders () {
+
+        $myorders = Order::where('user_id' , Auth::user()->id )->get();
+        $user_name = Auth::user()->name; // name for auth user
+
+        if ($myorders->isEmpty() ) {
+            return response() -> json([
+                'message' => "orders not found for this user " . $user_name,
+                'success' => false ,
+                'status' => 404
+            ] , 200);
+        } else {
+
+            $response = [
+                'mesaage' => "orders for this user "  . $user_name . " retrived successfully",
+                'success' => true,
+                'data' => $myorders ,
+                'status' => 200
+
+            ];
+
+            return response() -> json($response , 200 );
+        }
+
+
+
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+
+
+
+    //============================================================
+
     public function store(orderRequest $request)
     {
         $validOrder = $request->validated();
@@ -67,7 +101,7 @@ class OrderController extends Controller
             }
             $quantity = $productData['quantity']; // from request
             $price = $products->price; // from database
-            $product_name = $products->name;
+            $product_name = $products->name; // from database
             $order->products()->attach($productData['product_id'], [
                 'product_name' => $product_name,
                 'quantity' => $quantity,
@@ -104,7 +138,7 @@ class OrderController extends Controller
             'message' => 'order created successfully' ,
             'success' => true ,
             'data' => $order->load('products'),
-            // 'data' => $data, // لو محتاج داتا اقل انت متحكم فيها
+            // 'data' => $data, // if you want less data you are manage it ///
             'status' => 201
         ];
 
@@ -113,14 +147,89 @@ class OrderController extends Controller
 
     }
 
+
+
+
+    //=======================================================================
+
+
+
+    public function controlStatus (string $id , Request $request) {
+
+        $orderStatus = Order::find($id);
+        if (!$orderStatus) {
+          return response() -> json ([
+              'message' => 'order not found to change status',
+              'success' => false ,
+              'status' => 404
+          ] , 200);
+        }
+        // logger($orderStatus);
+        $nameProductInOrder = $orderStatus->products->pluck('pivot.product_name')->join(' ,');
+        // logger($product_name);
+
+        $currentStatus = $orderStatus->status;
+        $newStatus = $request->status;
+        $allowedStatuses = ['pending' , 'processing','completed' , 'cancelled'];
+
+        if (!in_array($newStatus , $allowedStatuses)) {
+           return response() -> json([
+               'message' => 'invalid status value',
+               'allowed statuses' => $allowedStatuses,
+               'status' => 400
+           ] , 400);
+       }
+
+
+
+       // allowed transitions ===
+           $validTransition = [
+            'pending' => ['processing' , 'cancelled'],
+            'processing' => ['completed' , 'cancelled'],
+            'completed' => [],
+            'cancelled' => []
+        ];
+
+
+
+        //====
+        if (!in_array($newStatus , $validTransition[$currentStatus])) {
+            return response() -> json ([
+                'message' => "invalid status transition from {$currentStatus} to {$newStatus}" ,
+                'allowed transions' => $validTransition,
+                'status' => 400
+            ],400 ); }
+
+
+
+
+
+
+     $orderStatus->update([
+        'status' => $request->status
+       ]);
+
+
+
+
+       return response()->json([
+        'message' => 'this status for order' ,
+        'aboutOrder' => "the order for  {$nameProductInOrder} has status {$currentStatus}",
+        'newStatus' => "the order updated it status successfully to {$newStatus}" ,
+        'success' => true,
+        'status' => 200
+       ] , 200);
+    }
+
+
+
     public function show(Order $order)
     {
 
+
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
+
     public function edit(Order $order)
     {
         //
@@ -139,6 +248,6 @@ class OrderController extends Controller
      */
     public function destroy(Order $order)
     {
-        //
+
     }
 }

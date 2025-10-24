@@ -16,7 +16,8 @@ class ProductController2 extends Controller
     public function index() {
 
         // $products = Product::paginate(5);
-        $products = Product::with('category')->get();
+        $products = Product::withAggregate('category' , 'name')->get();
+
         $response = [
             'message' => 'all products retrieved successfully',
             'success' => true ,
@@ -30,7 +31,7 @@ class ProductController2 extends Controller
 
     public function show(string $id){
 
-        $product = Product::find($id);
+        $product = Product::select('id' , 'name' , 'description' , 'price' , 'status' , 'category_id')->withAggregate('category' , 'name')->find($id);
 
         if (!$product) {
             $response = [

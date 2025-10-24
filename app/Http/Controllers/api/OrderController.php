@@ -12,7 +12,9 @@ use Illuminate\Http\Request;
 use App\Http\Requests\orderRequest;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Notifications\CreateOrder;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
 
 
 
@@ -23,6 +25,7 @@ class OrderController extends Controller
      */
     public function index()
     {
+        // $allOrders = Order::withAggregate('user' , 'name')->get();
         $allOrders = Order::withAggregate('user' , 'name')->paginate(10);
 
         $response = [
@@ -93,8 +96,10 @@ class OrderController extends Controller
 
             if ( !$products || $products->status == 'unactive') {
 
+                $productName = $products ? $products->name :'unkonwn product';
+
             return response()->json([
-                'message' => "product {$products->name} not available to orderd" ,
+                'message' => "product {$productName} not available to orderd" ,
                 'success' => false ,
                 'status' => 400
             ] , 200);
@@ -123,6 +128,10 @@ class OrderController extends Controller
             'totalPrice' => $totalPrice,
             'points' => $points
         ]);
+        $user = Auth::user();
+
+        $user->notify(new CreateOrder($totalPrice , $user->name , $order->id));
+        // Notification::send($user , new CreateOrder($totalPrice , $user->name , $order->id));
 
 
         $data = $order->products->map(function ($product) {
@@ -137,6 +146,7 @@ class OrderController extends Controller
         $response = [
             'message' => 'order created successfully' ,
             'success' => true ,
+            'Notification sent to user' => true,
             'data' => $order->load('products'),
             // 'data' => $data, // if you want less data you are manage it ///
             'status' => 201

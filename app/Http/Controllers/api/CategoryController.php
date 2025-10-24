@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
 use Illuminate\Container\Attributes\Auth;
-
+use Illuminate\Database\QueryException;
 
 class CategoryController extends Controller
 {
@@ -39,8 +39,9 @@ class CategoryController extends Controller
             'name' => 'required|string|min:6',
 
         ]);
+        try {
 
-        $newCategory = Category::create([
+             $newCategory = Category::create([
             'name' => $request->name,
         ]);
 
@@ -53,6 +54,19 @@ class CategoryController extends Controller
 
             return response()->json($response , 200);
         }
+
+        } catch (QueryException $e){
+
+            return response()->json([
+                'message' => 'failed to add category ' . $request->name . ' is already exist',
+                'Error' => $e->getMessage(),
+                'success' => false,
+                'status' => 500
+            ] , 200);
+
+        }
+
+
 
 
     }

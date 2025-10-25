@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OrderController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -11,6 +12,7 @@ use App\Http\Controllers\Api\ProductController2;
 use App\Http\Controllers\Api\UserController;
 use App\Models\Admin;
 use App\Models\Product;
+use Doctrine\DBAL\Schema\Index;
 use Phiki\Phast\Root;
 
 Route::get('/user', function (Request $request) {
@@ -67,6 +69,7 @@ Route::prefix('/order')->group(function () {
     Route::middleware('auth:sanctum', 'role.user')->group(function () {
         Route::post('/', [OrderController::class, 'store']); //User create order
         Route::get('/myorders' , [OrderController::class , 'myorders']); // User show his orders
+        Route::get('/notifications' , [NotificationController::class , 'index']); //User show his notification
 
     });
 

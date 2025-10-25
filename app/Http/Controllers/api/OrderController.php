@@ -13,6 +13,7 @@ use App\Http\Requests\orderRequest;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Notifications\CreateOrder;
+use App\Notifications\OrderstausUpdated;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Notification;
 
@@ -221,11 +222,16 @@ class OrderController extends Controller
 
 
 
+       $user_name = Auth::user()->name;
+       $oderID = $orderStatus->id;
+       $orderStatus->user->notify(new OrderstausUpdated($oderID , $currentStatus , $newStatus , $user_name));
+
 
        return response()->json([
         'message' => 'this status for order' ,
         'aboutOrder' => "the order for  {$nameProductInOrder} has status {$currentStatus}",
         'newStatus' => "the order updated it status successfully to {$newStatus}" ,
+        'Notification sent to user' => true,
         'success' => true,
         'status' => 200
        ] , 200);

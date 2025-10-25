@@ -18,6 +18,8 @@ sush as :Category = Cosmetics => Product = body lotion , body splash , skin care
 orders => has orderd date ;
 
 user => has data about them;
+ 
+ Notifications about orders ;
 ## About Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:

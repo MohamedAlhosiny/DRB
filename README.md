@@ -7,19 +7,82 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
-4 models => 1-category , 2- product , 3- orders , 4- users;
+Project Overview
 
-relationship => categoty : product &&  product : order && users:order;
+This project is a simple order management system built with Laravel.
+It allows users to browse products, place orders, and receive notifications when their order status changes.
 
-categry has many products , and the product can be ordered by clients , users can make many orders;
+📦 Main Models and Relationships
 
-sush as :Category = Cosmetics => Product = body lotion , body splash , skin care .....
+#Category
 
-orders => has orderd date ;
+-Each category (e.g., Cosmetics) contains multiple products.
 
-user => has data about them;
- 
- Notifications about orders ;
+-Relationship: Category hasMany Products
+
+#Product
+
+-Belongs to a specific category.
+
+-Can be ordered by multiple users.
+
+=Relationship:
+
+-Product belongsTo Category
+
+-Product hasMany Orders
+
+#Order
+
+-Represents a purchase made by a user for a specific product.
+
+-Stores the order date and status.
+
+=Relationship:
+
+-Order belongsTo User
+
+-Order belongsTo Product
+
+#User
+
+-Represents a client who can place multiple orders.
+
+-Relationship: User hasMany Orders
+
+
+#Admin Role
+
+-The Admin has extended privileges to manage the system:
+
+-Can create, update, or delete categories and products.
+
+-Can view and manage all users’ orders.
+
+-Can update order statuses, which triggers notifications to users.
+
+🔔 Notifications
+
+-Users receive email notifications when:
+
+-A new order is created.
+
+-The status of an existing order is updated.
+
+-Notifications are stored in the database and can be fetched via API.
+
+⚙️ Example Structure
+
+Example:
+
+Category: Cosmetics
+
+Products: Body Lotion, Body Splash, Skin Care
+
+User: Mohamed
+
+Order: Body Lotion → status updated → user notified
+
 ## About Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:

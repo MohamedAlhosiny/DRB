@@ -17,7 +17,7 @@ use App\Notifications\OrderstausUpdated;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Notification;
 
-
+use function PHPSTORM_META\map;
 
 class OrderController extends Controller
 {
@@ -77,86 +77,97 @@ class OrderController extends Controller
     //============================================================
 
     public function store(orderRequest $request)
-    {
-        $validOrder = $request->validated();
-        $order = Order::create([
-            'order_date' => now(),
-            'points' => 0,
-            'user_id' => Auth::user()->id,
-            'totalPrice' => 0
-        ]);
+{
+    $validOrder = $request->validated();
 
-        $totalPrice = 0 ;
-        $points = 0 ;
+    $totalPrice = 0;
+    $points = 0;
 
-        //products array from orderRequest !!!!!!!!!!!!!!!!!
-        foreach($validOrder['products'] as $productData){
 
-            $products = Product::find($productData['product_id']);
-            // $products = Product::where('name' ,$productData['product_name']);
 
-            if ( !$products || $products->status == 'unactive') {
+    // ✅ Check if all products are valid and active before creating the order
+    foreach ($validOrder['products'] as $productData) {
+        $product = Product::find($productData['product_id']);
 
-                $productName = $products ? $products->name :'unkonwn product';
+        if (!$product || $product->status == 'unactive') {
+            $productName = $product ? $product->name : 'unknown product';
 
             return response()->json([
-                'message' => "product {$productName} not available to orderd" ,
-                'success' => false ,
+                'message' => "product {$productName} not available to orderd",
+                'success' => false,
                 'status' => 400
-            ] , 200);
-            }
-            $quantity = $productData['quantity']; // from request
-            $price = $products->price; // from database
-            $product_name = $products->name; // from database
-            $order->products()->attach($productData['product_id'], [
-                'product_name' => $product_name,
-                'quantity' => $quantity,
-                'price' => $price
-            ]);
-
-            $totalPrice += $price * $quantity;
-            if ($totalPrice >= 50) {
-                $points = $totalPrice / 50;
-            } else {
-
-                $points = 1 ;
-            }
+            ], 200);
         }
-
-
-
-        $order->update([
-            'totalPrice' => $totalPrice,
-            'points' => $points
-        ]);
-        $user = Auth::user();
-
-        $user->notify(new CreateOrder($totalPrice , $user->name , $order->id));
-        // Notification::send($user , new CreateOrder($totalPrice , $user->name , $order->id));
-
-
-        $data = $order->products->map(function ($product) {
-            return  [
-                'product_name' => $product->name,
-                'price' => $product->price,
-                'quantity' => $product->pivot->quantity,
-                'description' => $product->description
-            ];
-        });
-
-        $response = [
-            'message' => 'order created successfully' ,
-            'success' => true ,
-            'Notification sent to user' => true,
-            'data' => $order->load('products'),
-            // 'data' => $data, // if you want less data you are manage it ///
-            'status' => 201
-        ];
-
-        return response() -> json($response , 200);
-
-
     }
+
+    // ✅ Create order only after validation
+    $order = Order::create([
+        'order_date' => now(),
+        'points' => 0,
+        'user_id' => Auth::user()->id,
+        'totalPrice' => 0
+    ]);
+
+    // ✅ Attach products to order
+    foreach ($validOrder['products'] as $productData) {
+
+        $products = Product::find($productData['product_id']);
+
+        $quantity = $productData['quantity']; // from request
+        $price = $products->price; // from database
+        $product_name = $products->name; // from database
+
+        $order->products()->attach($productData['product_id'], [
+            'product_name' => $product_name,
+            'quantity' => $quantity,
+            'price' => $price
+        ]);
+
+        $totalPrice += $price * $quantity;
+    }
+
+    // ✅ Calculate points after all products are processed
+    if ($totalPrice >= 50) {
+        $points = $totalPrice / 50;
+    } else {
+        $points = 1;
+    }
+
+    // ✅ Update order with total price and points
+    $order->update([
+        'totalPrice' => $totalPrice,
+        'points' => $points
+    ]);
+
+    $user = Auth::user();
+
+    $user->notify(new CreateOrder($totalPrice , $user->name , $order->id));
+    // Notification::send($user , new CreateOrder($totalPrice , $user->name , $order->id));
+
+    // ✅ Prepare data for response
+    $data = $order->products->map(function ($product) {
+        return [
+            'product_name' => $product->name,
+            'price' => $product->price,
+            'quantity' => $product->pivot->quantity,
+            'description' => $product->description
+        ];
+    });
+
+    // ✅ Final response
+    $response = [
+        'message' => 'order created successfully',
+        'success' => true,
+        'Notification sent to user' => true,
+        // 'data' => $order->load('products'),
+        // 'data' => $data, // if you want less data you are manage it ///
+        'order_id' => $order->id,
+        'status' => 201
+    ];
+
+    return response()->json($response, 200);
+}
+
 
 
 
@@ -239,10 +250,41 @@ class OrderController extends Controller
 
 
 
-    public function show(Order $order)
+    public function show(string $id)
     {
 
 
+
+        // user_name created order
+        //product_name of order
+        // category_name of product in order
+
+     /*   $orderDetails = Order::with(['user:id,name' , 'products' => function($query) {
+            $query->select('products.id' , 'products.name' , 'products.description' , 'products.price');
+        }])->find($id);
+*/
+        $orderDetails = Order::with(['user:id,name' , 'products:name,price' , 'products.category:name'])->find($id);
+
+
+        // $orderDetails = Order::withAggregate('products' , 'name')->find($id);
+        // logger($orderDetails);
+
+        if (!$orderDetails) {
+            return response()->json([
+                'message' => 'order not found',
+                'success' => false ,
+                'status' => 404
+            ] , 200);
+        }
+
+        $response = [
+            'message' => 'order details retrieved successfully',
+            'data' => $orderDetails,
+            'success' => true ,
+            'status' => 200
+        ];
+
+        return response()->json($response , 200);
     }
 
 

@@ -77,8 +77,7 @@ Route::prefix('/order')->group(function () {
     Route::middleware('auth:sanctum' , 'role.admin')->group(function() {
         Route::get('/' , [OrderController::class , 'index']);
         Route::patch('/{id}/statusOrder' , [OrderController::class , 'controlStatus']);
-
-
+        Route::get('/{id}' , [OrderController::class , 'show']);
         Route::get('/order-status' , function() {
             return response()->json([
                 'statuses for order' => ['pending' , 'processing','completed' , 'cancelled']

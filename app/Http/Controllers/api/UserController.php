@@ -96,5 +96,44 @@ public function logout() {
     return response()->json($response , 200);
 }
 
+public function index() {
+    $users = User::all(['id' , 'name' , 'email' , 'created_at']);
+
+    $response = [
+        'message' => 'All users are here',
+        'data' => $users,
+        'success' => true,
+        'status' => 200
+    ];
+
+    return response()->json($response , 200);
+}
+
+
+public function destroy($id) {
+    $user = User::find($id);
+
+    if(!$user) {
+        $response = [
+            'message' => 'User not found',
+            'success' => false,
+            'status' => 404
+        ];
+
+        return response()->json($response , 200);
+    }
+
+    $user->delete();
+
+    $response = [
+        'message' => 'User deleted successfully',
+        'success' => true,
+        'status' => 204
+    ];
+
+    return response()->json($response , 200);
+}
+
+
 
 }

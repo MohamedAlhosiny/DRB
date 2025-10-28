@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class UserMiddlewere
+class AdminMiddleware
 {
     /**
      * Handle an incoming request.
@@ -15,13 +15,14 @@ class UserMiddlewere
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if(auth()->user()->tokenCan('role:user')) {
+        $user = auth()->user();
+        if ($user->tokenCan('role:admin') || $user->tokenCan('role:superadmin') ) {
 
             return $next($request);
-        } else {
 
+        } else {
             return response()->json([
-                'message' => 'unauthorized' ,
+                'meesaage' => 'unAuth' ,
                 'success' => false,
                 'status' => 401
             ] , 200);

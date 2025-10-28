@@ -43,7 +43,7 @@ Route::prefix('admin')->group(function () {
 
 
 // Admin privileges
-Route::middleware('auth:sanctum', 'role.admin')->group(function () {
+Route::middleware('auth:sanctum', 'role.admin' )->group(function () {
     //Categories
     Route::prefix('/categories')->group(function () {
         Route::post('/', [CategoryController::class, 'store']);
@@ -78,6 +78,7 @@ Route::prefix('/order')->group(function () {
         Route::get('/' , [OrderController::class , 'index']);
         Route::patch('/{id}/statusOrder' , [OrderController::class , 'controlStatus']);
         Route::get('/{id}' , [OrderController::class , 'show']);
+        Route::delete('/{id}' , [OrderController::class , 'destroy']);
         Route::get('/order-status' , function() {
             return response()->json([
                 'statuses for order' => ['pending' , 'processing','completed' , 'cancelled']
@@ -86,6 +87,16 @@ Route::prefix('/order')->group(function () {
 
 
     });
+});
+
+//privileges for superadmin only
+Route::middleware('auth:sanctum' , 'role.superadmin')->group(function() {
+    Route::delete('/admin/{id}' , [AdminController::class , 'destroy']);
+    Route::delete('/user/{id}' , [UserController::class , 'destroy']);
+    Route::get('/all-users' , [UserController::class , 'index']);
+    Route::get('/all-admins' , [AdminController::class , 'index']);
+    Route::get('/dashboard-stats' , [AdminController::class , 'dashboardStats']);
+
 });
 
 

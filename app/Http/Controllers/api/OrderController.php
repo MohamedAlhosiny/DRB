@@ -255,23 +255,10 @@ class OrderController extends Controller
 
 
 
-        // user_name created order
-        //product_name of order
-        // category_name of product in order
-
-     /*   $orderDetails = Order::with(['user:id,name' , 'products' => function($query) {
-            $query->select('products.id' , 'products.name' , 'products.description' , 'products.price');
-        }])->find($id);
-*/
         $orderDetails = Order::with(['user:id,name' , 'products:name,price' , 'products.category:name'])->find($id);
-
-
-        // $orderDetails = Order::withAggregate('products' , 'name')->find($id);
-        // logger($orderDetails);
-
         if (!$orderDetails) {
             return response()->json([
-                'message' => 'order not found',
+                'message' => 'order not found to show details',
                 'success' => false ,
                 'status' => 404
             ] , 200);
@@ -304,8 +291,23 @@ class OrderController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Order $order)
+    public function destroy(string $id)
     {
+        $orderToDelete = Order::find($id);
+        if (!$orderToDelete) {
+            return response()->json([
+                'message' => 'order not found to delete',
+                'success' => false ,
+                'status' => 404
+            ] , 200);
+        }
 
+        $orderToDelete->delete();
+
+        return response()->json([
+            'message' => 'order deleted successfully',
+            'success' => true ,
+            'status' => 204
+        ] , 200);
     }
 }

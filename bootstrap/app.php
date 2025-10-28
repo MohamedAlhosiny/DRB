@@ -1,7 +1,8 @@
 <?php
 
-use App\Http\Middleware\AdminMiddlewere;
-use App\Http\Middleware\UserMiddlewere;
+use App\Http\Middleware\AdminMiddleware;
+use App\Http\Middleware\SuperadminMiddleware;
+use App\Http\Middleware\UserMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -15,8 +16,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'role.admin' => AdminMiddlewere::class,
-            'role.user' => UserMiddlewere::class
+            'role.admin' => AdminMiddleware::class,
+            'role.user' => UserMiddleware::class,
+            'role.superadmin' => SuperadminMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

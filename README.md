@@ -7,81 +7,113 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
-Project Overview
+#Laravel Order Management System
 
-This project is a simple order management system built with Laravel.
-It allows users to browse products, place orders, and receive notifications when their order status changes.
+A simple and clean Order Management System built with Laravel, designed to handle users, products, categories, and orders — with full admin and superadmin control and real-time notifications.
 
-📦 Main Models and Relationships
+🚀 Overview
 
-#Category
+This project provides a backend API for managing product orders.
+It allows users to browse and order products, while admins and superadmins can manage the platform’s data and users.
 
--Each category (e.g., Cosmetics) contains multiple products.
+📦 Main Models & Relationships
 
--Relationship: Category hasMany Products
+🏷️ Category
 
-#Product
+Each category (e.g., Cosmetics) contains multiple products.
 
--Belongs to a specific category.
+Relationship:
+Category hasMany Products
 
--Can be ordered by multiple users.
+🧴 Product
 
-=Relationship:
+Belongs to one category.
 
--Product belongsTo Category
+Can appear in many orders.
 
--Product hasMany Orders
+Relationships:
 
-#Order
+Product belongsTo Category
 
--Represents a purchase made by a user for a specific product.
+Product belongsToMany Orders (via pivot table with quantity & price)
 
--Stores the order date and status.
+📦 Order
 
-=Relationship:
+Represents a purchase made by a specific user.
 
--Order belongsTo User
+Stores order details like date, total price, and status.
 
--Order belongsTo Product
+Relationships:
 
-#User
+Order belongsTo User
 
--Represents a client who can place multiple orders.
+Order belongsToMany Products
 
--Relationship: User hasMany Orders
+👤 User
 
+Represents a client who can place multiple orders.
 
-#Admin Role
+Relationship:
+User hasMany Orders
 
--The Admin has extended privileges to manage the system:
+🛠️ Roles & Permissions
+👨‍💼 Admin
 
--Can create, update, or delete categories and products.
+Can create, update, and delete categories and products.
 
--Can view and manage all users’ orders.
+Can view and manage all users’ orders.
 
--Can update order statuses, which triggers notifications to users.
+Can update order statuses, triggering notifications to users.
+
+🦸 Superadmin
+
+Has all admin privileges, plus:
+
+Can view and delete any user or admin.
+
+Can add new admins.
+
+Has full control over the system.
+==========================================
+👥 User
+
+Can browse products and place orders.
+
+Can view their own orders and receive updates when status changes.
 
 🔔 Notifications
 
--Users receive email notifications when:
+Users receive email + database notifications when:
 
--A new order is created.
+A new order is created.
 
--The status of an existing order is updated.
+The status of an existing order is updated.
 
--Notifications are stored in the database and can be fetched via API.
+These notifications can also be fetched via API.
 
-⚙️ Example Structure
+🧩 Tech Stack
 
-Example:
+Backend: Laravel 12
+
+Database: MySQL
+
+Authentication: Laravel Sanctum (Token-based)
+
+Notifications: Mail & Database
+
+API Testing: Postman
+
+📁 Example Data
 
 Category: Cosmetics
-
 Products: Body Lotion, Body Splash, Skin Care
-
 User: Mohamed
-
 Order: Body Lotion → status updated → user notified
+
+🔑 Admin Roles Example
+Role	Capabilities
+Admin	Manage products, categories, orders
+Superadmin	Manage admins, users, and system settings
 
 ## About Laravel
 

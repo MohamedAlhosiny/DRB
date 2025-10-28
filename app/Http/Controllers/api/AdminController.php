@@ -9,6 +9,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Requests\loginRequestAdmin;
+use App\Models\Order;
+use App\Models\Product;
+use App\Models\User;
 
 class AdminController extends Controller
 {
@@ -48,14 +51,17 @@ class AdminController extends Controller
             return response()->json($response , 200);
         }else {
 
-            $token = $admin->createToken('tokenAdmin' , ['role:admin'])->plainTextToken;
+            $ability =[ 'role:'.$admin->role] ;
+
+            $token = $admin->createToken('tokenAdmin' , $ability)->plainTextToken;
 
             $response = [
                 'message' => 'Admin login successfully',
                 'success' => true,
                 'data' => [
                     $admin->name,
-                    $admin->email
+                    $admin->email,
+                    $admin->role
                 ],
                 'token' => $token,
                 'status' => 200
@@ -66,6 +72,45 @@ class AdminController extends Controller
         }
 
     }
+
+    public function index() {
+        $admins = Admin::all(['id' , 'name' , 'email' , 'role' , 'created_at']);
+
+
+        $response =[
+            'message' => 'list of all admins',
+            'data' => $admins,
+            'success' => true,
+            'status' => 200
+        ];
+
+        return response()->json($response , 200);
+    }
+
+    public function dashboardStats(){
+        $stats = [
+            'all-users' => User::count(),
+            'all-admins' => Admin::count(),
+            'all-products' => Product::count(),
+            'all-orders' => Order::count(),
+            'total-revenue' => Order::where('status' , 'completed')->sum('totalPrice'),
+            'top-selling-product' => Product::withCount('orders')
+                                        ->orderByDesc('orders_count')
+                                        ->first(['id' , 'name' , 'orders_count'])
+
+        ];
+
+        $response = [
+            'message' => 'dashboard statistics',
+            'data' => $stats,
+            'success' => true,
+            'status' => 200
+        ];
+
+        return response()->json($response , 200);
+    }
+
+
 
     public function logout(){
         $admin = Auth::user();
@@ -78,4 +123,30 @@ class AdminController extends Controller
             'status' => 200
         ] , 200);
     }
+
+
+
+
+    //for superadmin only
+    public function destroy($id) {
+        $admin = Admin::find($id);
+
+        if (!$admin) {
+            return response()->json([
+                'message' => 'Admin not found',
+                'success' => false,
+                'status' => 404
+            ], 200);
+        }
+
+        $admin->delete();
+
+        return response()->json([
+            'message' => 'Admin deleted successfully',
+            'success' => true,
+            'status' => 204
+        ], 200);
+    }
+
+
 }

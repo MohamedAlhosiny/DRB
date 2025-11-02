@@ -1,38 +1,27 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+
 use App\Models\Category;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
 use Illuminate\Container\Attributes\Auth;
 use Illuminate\Database\QueryException;
+use App\Traits\ApiResponseTrait;
 
 class CategoryController extends Controller
 {
+    use ApiResponseTrait;
 
     public function index()
     {
         $categories = Category::paginate(10);
-        $response = [
-            'message' => 'all categories retrieved successfully',
-            'data' => $categories,
-            'success' => true,
-            'status' => 200
-        ];
-
-        return response()->json($response , 200);
+        return $this->successResponse($categories, "all categories retrieved successfully", 200);
     }
 
 
-    public function create()
-    {
 
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -41,34 +30,19 @@ class CategoryController extends Controller
         ]);
         try {
 
-             $newCategory = Category::create([
-            'name' => $request->name,
-        ]);
+            $newCategory = Category::create([
+                'name' => $request->name,
+            ]);
 
-        if ($newCategory) {
-            $response = [
-                'message' => 'Category added successfully',
-                'success' => true,
-                'status' => 201
-            ];
+            if ($newCategory) {
 
-            return response()->json($response , 200);
+                return $this->successResponse($newCategory, 'Category added successfully', 201);
+            }
+        } catch (QueryException $e) {
+
+
+            return $this->errorResponse(null, 'Failed to add category ' . $request->name . ' is already exist', 500);
         }
-
-        } catch (QueryException $e){
-
-            return response()->json([
-                'message' => 'failed to add category ' . $request->name . ' is already exist',
-                'Error' => $e->getMessage(),
-                'success' => false,
-                'status' => 500
-            ] , 200);
-
-        }
-
-
-
-
     }
 
     /**
@@ -78,34 +52,17 @@ class CategoryController extends Controller
     {
         $category = Category::find($id);
         if (!$category) {
-            $response = [
-                'message' => 'sorry this category not exist to show',
-                'success' => false,
-                'status' => 404
-            ];
-            return response() -> json($response , 200);
-        }else {
-            $response = [
-                'message' => 'this category is ' . $category->name . ' ',
-                'data' => $category,
-                'success' => true,
-                'status' => 200
-            ];
-            return response()->json($response , 200);
+
+            return $this->errorResponse(null , 'sorry this category not exist to show', 404);
+        } else {
+
+            return $this->successResponse($category , 'this category is ' . $category->name . '' , 200);
         }
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
 
-    /**
-     * Update the specified resource in storage.
-     */
+
+
     public function update(Request $request, string $id)
     {
         $request->validate([
@@ -114,29 +71,20 @@ class CategoryController extends Controller
 
         $category = Category::find($id);
 
-        if(!$category){
-            $response = [
-                'message' => 'sorry this category not exist to update',
-                'success' => false,
-                'status' => 404
-            ];
-            return response()->json($response , 200);
-        }else {
+        if (!$category) {
 
-      $oldCategory = $category->name;
+            return $this->errorResponse(null , "sorry this category not exist to update" , 404);
+        } else {
 
-       $category->name = $request->name ?? $category->name;
-       $category->save();
+            $oldCategory = $category->name;
 
-       $newCategory = Category::find($id);
+            $category->name = $request->name ?? $category->name;
+            $category->save();
 
-            $response = [
-                'message' => 'Category updated from ' . $oldCategory . ' to ' . $category->name,
-                'data' => $newCategory,
-                'success' => true,
-                'status' => 200
-            ];
-            return response()->json($response , 200);
+            $newCategory = Category::find($id);
+
+
+            return $this->successResponse($newCategory , 'Category updated from ' .$oldCategory . ' to ' . $category->name , 200);
         }
     }
 
@@ -147,22 +95,14 @@ class CategoryController extends Controller
     {
         $category = Category::find($id);
 
-        if(!$category) {
-            $response = [
-                'message' => 'sorry this category not exist to delete',
-                'success' => true,
-                'status' => 404
-            ];
-            return response()->json($response , 200);
-        }else {
+        if (!$category) {
+
+            return $this->errorResponse( null , 'sorry this category not exist to delete' , 404);
+        } else {
             $category->delete();
 
-            $response = [
-                'message' => 'category is deleted successfully',
-                'success' => true,
-                'status'=> 204
-            ];
-            return response()->json($response , 200);
+
+            return $this->successResponse( null , 'category is deleted successfully' , 204);
         }
     }
 }

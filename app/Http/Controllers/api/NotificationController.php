@@ -5,33 +5,23 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Container\Attributes\Auth;
 use Illuminate\Http\Request;
+use App\Traits\ApiResponseTrait;
 
 class NotificationController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    use ApiResponseTrait;
+   
     public function index()
     {
         if (!auth()->user()) {
-            return response()->json([
-                'message' => 'unothorized' ,
-                'success' => false ,
-                'status' =>401
-            ] , 200 );
+
+            return $this->errorResponse(null , 'unothorized' , 401);
+
 
         }else {
             $user = auth()->user();
             $notifications  = $user->notifications;
-
-            $response = [
-                'message' => "user {$user->name} notifications retrieved successfully",
-                'success'=> true,
-                'notificatios' => $notifications,
-                'status' => 200
-            ];
-
-            return response()->json($response , 200);
+            return $this->successResponse($notifications , "user {$user->name} notifications retrieved successfully" , 200);
         }
     }
 

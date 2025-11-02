@@ -9,22 +9,19 @@ use Illuminate\Http\Request;
 use App\Models\Product;
 use Dotenv\Util\Str;
 use Illuminate\Database\QueryException;
+use App\Traits\ApiResponseTrait;
 
 class ProductController2 extends Controller
 {
+    use ApiResponseTrait;
 
     public function index() {
 
         // $products = Product::paginate(5);
         $products = Product::withAggregate('category' , 'name')->get();
 
-        $response = [
-            'message' => 'all products retrieved successfully',
-            'success' => true ,
-            'data' => $products,
-            'status' => 200
-        ];
-        return response()->json($response , 200);
+
+        return $this->successResponse( $products , 'all products retrieved successfully' , 200);
 
     }
 
@@ -34,23 +31,12 @@ class ProductController2 extends Controller
         $product = Product::select('id' , 'name' , 'description' , 'price' , 'status' , 'category_id')->withAggregate('category' , 'name')->find($id);
 
         if (!$product) {
-            $response = [
-                'message' => 'sorry this product not found to show' ,
-                'success' => false ,
-                'status' => 404
-            ];
-            return response()->json($response , 200);
+
+            return $this->errorResponse( null , 'sorry this product not found to show' , 404);
         }else {
 
 
-            $response = [
-                'message' => 'this product is ' . $product->name,
-                'success' => true,
-                'data' => $product,
-                'status' => 200
-            ];
-
-            return response()->json($response , 200);
+            return $this->successResponse( $product , 'this product is ' . $product->name , 200);
 
         }
 
@@ -62,11 +48,8 @@ class ProductController2 extends Controller
         $category = Category::find($request->category_id);
 
         if(!$category) {
-            return response()->json([
-                'message' => 'category not found to select',
-                'success' => false ,
-                'status' => 404
-            ] , 200);
+
+            return $this->errorResponse( null , 'category not found to select' , 404);
         }
         try {
 
@@ -82,14 +65,7 @@ class ProductController2 extends Controller
 
                 $productWithCategory = Product::withAggregate('category' , 'name')->find($product->id);
 
-                $response = [
-                    'message' => 'product stored successfully',
-                    'success' => true,
-                    'data' => $productWithCategory,
-                    'status' => 201
-                ];
-
-                return response()->json($response , 200);
+                return $this->successResponse( $productWithCategory , 'product stored successfully' , 201);
 
             }
 
@@ -98,11 +74,8 @@ class ProductController2 extends Controller
         } catch (QueryException $e) {
             // if duplicate entry error
             if ( $e->errorInfo[1] == 1062) {
-                return response()->json([
-                    'message' => "Cannot store {$request->name} this product already exist" ,
-                    'success' => false ,
-                    'status' => 409
-                ] , 409);
+
+                return $this->errorResponse( null , "Cannot store {$request->name} this product already exist" , 409);
 
         } else {
             return response()->json([
@@ -144,16 +117,7 @@ class ProductController2 extends Controller
                 'category_name' => $productAfterUpdated->category->name
             ];
 
-
-
-        $response = [
-            'message' => 'status is changed successfully from ' . $oldStatus . ' to ' . $product->status,
-            'success' => true ,
-            'data' => $data,
-            'status' => 200
-        ];
-
-        return response()->json($response , 200);
+        return $this->successResponse( $data , 'status is changed successfully from ' . $oldStatus . ' to ' . $product->status , 200);
     }
 
 
@@ -163,11 +127,8 @@ class ProductController2 extends Controller
 
         $oldProduct = Product::where('id' , $id)->withAggregate('category' , 'name')->get(['name' , 'description' , 'price' , 'category_id']);
         if (!$product){
-            return response()->json([
-                'message' => 'this product not found to update',
-                'success' => false ,
-                'status' => 404
-            ], 200);
+
+            return $this->errorResponse( null , 'this product not found to update' , 404);
         }
 
         $request->validate([
@@ -177,19 +138,7 @@ class ProductController2 extends Controller
             'category_id' => 'exists:categories,id'
         ]);
 
-        //   if($request->has('category_id')){
 
-        //         $category = Category::find($request->category_id);
-
-        //         if(!$category) {
-        //             return response()->json([
-        //                 'message' => 'this category not found to related with product' ,
-        //                 'success' => false ,
-        //                 'status' => 404
-        //             ] , 200);
-        //         }
-
-        //     }
 
         $product->update([
             'name' => $request->name ?? $product->name,
@@ -220,22 +169,13 @@ class ProductController2 extends Controller
         $product = Product::find($id);
         // dd($product);
         if(!$product){
-            return response()->json([
-                'message' => 'this product not found to delete',
-                'success' => false,
-                'status' => 404
-            ] , 200);
+
+            return $this->errorResponse( null , 'this product not found to delete' , 404);
         }else {
 
             $product->delete();
 
-            $response = [
-                'message' => 'this product deleted successfully',
-                'success' => true ,
-                'status' => 204
-            ];
-
-            return response() -> json($response , 200);
+            return $this->successResponse( null , 'this product deleted successfully' , 204);
         }
     }
 }

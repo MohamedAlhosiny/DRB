@@ -16,11 +16,13 @@ use App\Notifications\CreateOrder;
 use App\Notifications\OrderstausUpdated;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Notification;
+use App\Traits\ApiResponseTrait;
 
 use function PHPSTORM_META\map;
 
 class OrderController extends Controller
 {
+    use ApiResponseTrait;
     /**
      * Display a listing of the resource.
      */
@@ -28,14 +30,7 @@ class OrderController extends Controller
     {
         // $allOrders = Order::withAggregate('user' , 'name')->get();
         $allOrders = Order::withAggregate('user' , 'name')->paginate(10);
-
-        $response = [
-            'message' => 'all orders retrieved successfully',
-            'data' => $allOrders,
-            'success' => true ,
-            'status' => 200
-        ];
-        return response()->json($response , 200);
+        return $this->successResponse($allOrders , 'all orders retrieved successfully' , 200);
 
     }
 
@@ -49,22 +44,12 @@ class OrderController extends Controller
         $user_name = Auth::user()->name; // name for auth user
 
         if ($myorders->isEmpty() ) {
-            return response() -> json([
-                'message' => "orders not found for this user " . $user_name,
-                'success' => false ,
-                'status' => 404
-            ] , 200);
+
+            return $this->errorResponse( null , "orders not found for this user " . $user_name , 404);
         } else {
 
-            $response = [
-                'mesaage' => "orders for this user "  . $user_name . " retrived successfully",
-                'success' => true,
-                'data' => $myorders ,
-                'status' => 200
 
-            ];
-
-            return response() -> json($response , 200 );
+            return $this->successResponse( $myorders , "orders for this user "  . $user_name . " retrived successfully" , 200);
         }
 
 
@@ -92,11 +77,7 @@ class OrderController extends Controller
         if (!$product || $product->status == 'unactive') {
             $productName = $product ? $product->name : 'unknown product';
 
-            return response()->json([
-                'message' => "product {$productName} not available to orderd",
-                'success' => false,
-                'status' => 400
-            ], 200);
+            return $this->errorResponse( null , "product {$productName} not available to orderd" , 400);
         }
     }
 
@@ -155,17 +136,8 @@ class OrderController extends Controller
     });
 
     // ✅ Final response
-    $response = [
-        'message' => 'order created successfully',
-        'success' => true,
-        'Notification sent to user' => true,
-        // 'data' => $order->load('products'),
-        // 'data' => $data, // if you want less data you are manage it ///
-        'order_id' => $order->id,
-        'status' => 201
-    ];
-
-    return response()->json($response, 200);
+    return $this->successResponse( $order->load('products') , 'order created successfully' , 201);
+    // return $this->successResponse( $data , 'order created successfully' , 201); // if you want less data you are manage it ///
 }
 
 
@@ -180,11 +152,8 @@ class OrderController extends Controller
 
         $orderStatus = Order::find($id);
         if (!$orderStatus) {
-          return response() -> json ([
-              'message' => 'order not found to change status',
-              'success' => false ,
-              'status' => 404
-          ] , 200);
+
+            return $this->errorResponse( null , 'order not found to change status' , 404);
         }
         // logger($orderStatus);
         $nameProductInOrder = $orderStatus->products->pluck('pivot.product_name')->join(' ,');
@@ -200,6 +169,7 @@ class OrderController extends Controller
                'allowed statuses' => $allowedStatuses,
                'status' => 400
            ] , 400);
+
        }
 
 
@@ -257,21 +227,12 @@ class OrderController extends Controller
 
         $orderDetails = Order::with(['user:id,name' , 'products:name,price' , 'products.category:name'])->find($id);
         if (!$orderDetails) {
-            return response()->json([
-                'message' => 'order not found to show details',
-                'success' => false ,
-                'status' => 404
-            ] , 200);
+
+            return $this->errorResponse( null , 'order not found to show details' , 404);
         }
 
-        $response = [
-            'message' => 'order details retrieved successfully',
-            'data' => $orderDetails,
-            'success' => true ,
-            'status' => 200
-        ];
 
-        return response()->json($response , 200);
+        return $this->successResponse( $orderDetails , 'order details retrieved successfully' , 200);
     }
 
 
@@ -295,19 +256,12 @@ class OrderController extends Controller
     {
         $orderToDelete = Order::find($id);
         if (!$orderToDelete) {
-            return response()->json([
-                'message' => 'order not found to delete',
-                'success' => false ,
-                'status' => 404
-            ] , 200);
+
+            return $this->errorResponse( null , 'order not found to delete' , 404);
         }
 
         $orderToDelete->delete();
 
-        return response()->json([
-            'message' => 'order deleted successfully',
-            'success' => true ,
-            'status' => 204
-        ] , 200);
+        return $this->successResponse( null , 'order deleted successfully' , 204);
     }
 }

@@ -12,9 +12,13 @@ use App\Http\Requests\loginRequestAdmin;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
+use App\Traits\ApiResponseTrait;
 
 class AdminController extends Controller
 {
+    use ApiResponseTrait;
+
+
     public function register(adminRequest $request) {
         $data_admin = $request->validated();
 
@@ -24,14 +28,8 @@ class AdminController extends Controller
             'password' => Hash::make($request->password)
         ]);
         if ($admin) {
-            $response = [
-                'message' => 'admin created successfully',
-                'success' => true,
-                'data' => $admin->name,
-                'status' => 201
-            ];
 
-            return response()->json($response , 200);
+            return $this->successResponse($admin->name , "Admin created successfully" , 201);
         }
 
     }
@@ -43,49 +41,37 @@ class AdminController extends Controller
         $admin = Admin::where('email' , $request->email)->first();
 
         if(!$admin || !Hash::check($request->password , $admin->password)) {
-            $response = [
-                'message' => 'something is error',
-                'success' => false ,
-                'status' => 401
-            ];
-            return response()->json($response , 200);
+
+            return $this->errorResponse(null , "The provided credentials are incorrect" , 401);
+
         }else {
 
             $ability =[ 'role:'.$admin->role] ;
 
             $token = $admin->createToken('tokenAdmin' , $ability)->plainTextToken;
 
-            $response = [
-                'message' => 'Admin login successfully',
-                'success' => true,
-                'data' => [
-                    $admin->name,
-                    $admin->email,
-                    $admin->role
-                ],
-                'token' => $token,
-                'status' => 200
+            $data_admin = [
+                'name' => $admin->name,
+                'email' => $admin->email,
+                'role' => $admin->role,
+                'token' => $token
             ];
 
-            return response()->json($response , 200);
+            return $this->successResponse($data_admin , "Admin login successfully" , 200);
+
 
         }
+
 
     }
 
     public function index() {
         $admins = Admin::all(['id' , 'name' , 'email' , 'role' , 'created_at']);
 
-
-        $response =[
-            'message' => 'list of all admins',
-            'data' => $admins,
-            'success' => true,
-            'status' => 200
-        ];
-
-        return response()->json($response , 200);
+        return $this->successResponse($admins , "list of all admins" , 200);
     }
+
+
 
     public function dashboardStats(){
         $stats = [
@@ -100,14 +86,8 @@ class AdminController extends Controller
 
         ];
 
-        $response = [
-            'message' => 'dashboard statistics',
-            'data' => $stats,
-            'success' => true,
-            'status' => 200
-        ];
 
-        return response()->json($response , 200);
+        return $this->successResponse($stats , "dashboard statistics" , 200);
     }
 
 
@@ -117,11 +97,7 @@ class AdminController extends Controller
 
         $admin->currentAccessToken()->delete();
 
-        return response()->json([
-            'message' => 'admin logout successfully',
-            'success' => true,
-            'status' => 200
-        ] , 200);
+        return $this->successResponse(null , "Admin logout successfully" , 200);
     }
 
 
@@ -132,20 +108,14 @@ class AdminController extends Controller
         $admin = Admin::find($id);
 
         if (!$admin) {
-            return response()->json([
-                'message' => 'Admin not found',
-                'success' => false,
-                'status' => 404
-            ], 200);
+
+            return $this->errorResponse(null , "Admin not found" , 404 );
         }
 
         $admin->delete();
 
-        return response()->json([
-            'message' => 'Admin deleted successfully',
-            'success' => true,
-            'status' => 204
-        ], 200);
+      return   $this->successResponse(null , "Admin deleted successfully" , 200);
+
     }
 
 

@@ -9,9 +9,11 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Requests\loginRequestUser;
+use App\Traits\ApiResponseTrait;
 
 class UserController extends Controller
 {
+    use ApiResponseTrait;
 
 public function store(userRequest $request) {
 
@@ -26,23 +28,14 @@ public function store(userRequest $request) {
     ]);
 
     if($userRegister) {
-        $response = [
-            'message' => 'Hello user ' . $userRegister -> name . " in our App",
-            'data' => [$userRegister->name ,
-            $userRegister->email],
-            'success' => true,
-            'status' => 201
-        ];
 
-        return response()->json($response , 200);
+        return $this->successResponse( [
+            $userRegister->name ,
+            $userRegister->email
+        ] , 'Hello user ' . $userRegister -> name . " in our App" , 201);
     } else {
-        $response = [
-            'message' => 'something is not valid',
-            'success' => false,
-            'status' => 422
-        ];
 
-        return response()->json($response , 200);
+        return $this->errorResponse( null , 'something is not valid' , 422);
 
     }
 }
@@ -55,29 +48,18 @@ public function login(loginRequestUser $request ) {
     $user = User::where('email' , $request->email)->first();
 
     if(!$user || !Hash::check($request->password , $user->password) ) {
-        $response = [
-            'message' => 'something is worng',
-            'success' => false ,
-            'status' => 401
-        ];
 
-        return response()->json($response , 200);
+        return $this->errorResponse( null , 'something is worng' , 401);
     }else {
 
         $token = $user->createToken('myToken' , ['role:user'])->plainTextToken;
 
-        $response =  [
-            'message'=> 'hello ' . $user->name . ' in our app',
-            'data'=> [
-                $user->name ,
-                $user->email
-            ],
-            'success' => true,
-            'token' => $token,
-            'status' => 200
-        ];
 
-        return response()->json($response , 200);
+        return $this->successResponse( [
+            'name' => $user->name ,
+            'email' => $user->email,
+            'token' => $token
+        ] , 'hello ' . $user->name . ' in our app' , 200);
     }
 
 }
@@ -88,25 +70,15 @@ public function logout() {
 
     $user->currentAccessToken()->delete();
 
-    $response = [
-        'message' => 'Logout is done',
-        'success' => true,
-        'status' => 200
-    ];
-    return response()->json($response , 200);
+
+    return $this->successResponse( null , 'Logout is done' , 200);
 }
 
 public function index() {
     $users = User::all(['id' , 'name' , 'email' , 'created_at']);
 
-    $response = [
-        'message' => 'All users are here',
-        'data' => $users,
-        'success' => true,
-        'status' => 200
-    ];
 
-    return response()->json($response , 200);
+    return $this->successResponse( $users , 'All users are here' , 200);
 }
 
 
@@ -114,24 +86,14 @@ public function destroy($id) {
     $user = User::find($id);
 
     if(!$user) {
-        $response = [
-            'message' => 'User not found',
-            'success' => false,
-            'status' => 404
-        ];
 
-        return response()->json($response , 200);
+        return $this->errorResponse( null , 'User not found' , 404);
     }
 
     $user->delete();
 
-    $response = [
-        'message' => 'User deleted successfully',
-        'success' => true,
-        'status' => 204
-    ];
 
-    return response()->json($response , 200);
+    return $this->successResponse( null , 'User deleted successfully' , 204);
 }
 
 

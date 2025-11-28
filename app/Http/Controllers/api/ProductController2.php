@@ -15,45 +15,50 @@ class ProductController2 extends Controller
 {
     use ApiResponseTrait;
 
-    public function index() {
+    public function index()
+    {
 
         // $products = Product::paginate(5);
-        $products = Product::withAggregate('category' , 'name')->get();
+        $products = Product::withAggregate('category', 'name')->get();
 
 
-        return $this->successResponse( $products , 'all products retrieved successfully' , 200);
-
+        return $this->successResponse($products, 'all products retrieved successfully', 200);
     }
 
 
-    public function show(string $id){
 
-        $product = Product::select('id' , 'name' , 'description' , 'price' , 'status' , 'category_id')->withAggregate('category' , 'name')->find($id);
+
+
+
+    
+    public function show(string $id)
+    {
+
+        $product = Product::select('id', 'name', 'description', 'price', 'status', 'category_id')->withAggregate('category', 'name')->find($id);
 
         if (!$product) {
 
-            return $this->errorResponse( null , 'sorry this product not found to show' , 404);
-        }else {
+            return $this->errorResponse(null, 'sorry this product not found to show', 404);
+        } else {
 
 
-            return $this->successResponse( $product , 'this product is ' . $product->name , 200);
-
+            return $this->successResponse($product, 'this product is ' . $product->name, 200);
         }
-
     }
 
-    public function store(productRequest $request){
+    public function store(productRequest $request)
+    {
         $productValidate = $request->validated();
 
         $category = Category::find($request->category_id);
 
-        if(!$category) {
+        if (!$category) {
 
-            return $this->errorResponse( null , 'category not found to select' , 404);
+            return $this->errorResponse(null, 'category not found to select', 404);
         }
         try {
 
-               $product = Product::create([
+            $product = Product::create([
                 'name' => $request->name,
                 'description' => $request->description,
                 'price' => $request->price,
@@ -63,39 +68,37 @@ class ProductController2 extends Controller
 
             if ($product) {
 
-                $productWithCategory = Product::withAggregate('category' , 'name')->find($product->id);
+                $productWithCategory = Product::withAggregate('category', 'name')->find($product->id);
 
-                return $this->successResponse( $productWithCategory , 'product stored successfully' , 201);
-
+                return $this->successResponse($productWithCategory, 'product stored successfully', 201);
             }
-
-
-
         } catch (QueryException $e) {
             // if duplicate entry error
-            if ( $e->errorInfo[1] == 1062) {
+            if ($e->errorInfo[1] == 1062) {
 
-                return $this->errorResponse( null , "Cannot store {$request->name} this product already exist" , 409);
-
-        } else {
-            return response()->json([
-                'message' => 'database error , please try again later0',
-                'error' => $e->getMessage(),
-                'success' => 500,
-                'status' => 500
-            ] , 500);
+                return $this->errorResponse(null, "Cannot store {$request->name} this product already exist", 409);
+            } else {
+                return response()->json([
+                    'message' => 'database error , please try again later0',
+                    'error' => $e->getMessage(),
+                    'success' => 500,
+                    'status' => 500
+                ], 500);
+            }
         }
     }
 
 
-    }
 
-    public function changeStatus(string $id) {
+
+
+    public function changeStatus(string $id)
+    {
         $product = Product::find($id);
 
         $oldStatus = $product->status;
 
-        if($product->status == 'unactive') {
+        if ($product->status == 'unactive') {
             $product->status = 'active';
         } else {
             $product->status = 'unactive';
@@ -108,27 +111,28 @@ class ProductController2 extends Controller
         $productAfterUpdated = Product::with('category')->find($id);
 
         $data =  [
-                'product_id' => $productAfterUpdated->id ,
-                'product_name' => $productAfterUpdated->name,
-                'product_description' => $productAfterUpdated->description,
-                'product_price' => $productAfterUpdated->price,
-                'product_status' => $productAfterUpdated->status,
-                'category_id' => $productAfterUpdated->category->id,
-                'category_name' => $productAfterUpdated->category->name
-            ];
+            'product_id' => $productAfterUpdated->id,
+            'product_name' => $productAfterUpdated->name,
+            'product_description' => $productAfterUpdated->description,
+            'product_price' => $productAfterUpdated->price,
+            'product_status' => $productAfterUpdated->status,
+            'category_id' => $productAfterUpdated->category->id,
+            'category_name' => $productAfterUpdated->category->name
+        ];
 
-        return $this->successResponse( $data , 'status is changed successfully from ' . $oldStatus . ' to ' . $product->status , 200);
+        return $this->successResponse($data, 'status is changed successfully from ' . $oldStatus . ' to ' . $product->status, 200);
     }
 
 
-    public function update (Request $request , string $id) {
+    public function update(Request $request, string $id)
+    {
 
         $product = Product::find($id);
 
-        $oldProduct = Product::where('id' , $id)->withAggregate('category' , 'name')->get(['name' , 'description' , 'price' , 'category_id']);
-        if (!$product){
+        $oldProduct = Product::where('id', $id)->withAggregate('category', 'name')->get(['name', 'description', 'price', 'category_id']);
+        if (!$product) {
 
-            return $this->errorResponse( null , 'this product not found to update' , 404);
+            return $this->errorResponse(null, 'this product not found to update', 404);
         }
 
         $request->validate([
@@ -148,7 +152,7 @@ class ProductController2 extends Controller
         ]);
         $product = Product::find($id);
 
-        $productUpdated = Product::withAggregate('category' , 'name')->find($request->id);
+        $productUpdated = Product::withAggregate('category', 'name')->find($request->id);
 
         $response = [
             'message' => 'product updated successfully',
@@ -160,22 +164,47 @@ class ProductController2 extends Controller
             'status' => 200
         ];
 
-        return response()->json($response , 200);
-
-
+        return response()->json($response, 200);
     }
 
-    public function destroy(string $id){
+    public function destroy(string $id)
+    {
         $product = Product::find($id);
         // dd($product);
-        if(!$product){
+        if (!$product) {
 
-            return $this->errorResponse( null , 'this product not found to delete' , 404);
-        }else {
+            return $this->errorResponse(null, 'this product not found to delete', 404);
+        } else {
 
             $product->delete();
 
-            return $this->successResponse( null , 'this product deleted successfully' , 204);
+            return $this->successResponse(null, 'this product deleted successfully', 204);
         }
+    }
+
+    //for users
+
+    public function listActiveProducts()
+    {
+        $products = Product::where('status', 'active')->with(['category' => function ($query) {
+            $query->select('id', 'name');}])
+        ->select('id', 'name', 'description', 'price', 'category_id')->get();
+
+        if (count($products) == 0) {
+
+            return $this->errorResponse(null, 'no active products found', 404);
+        }
+        return $this->successResponse($products, 'active products retrieved successfully', 200);
+    }
+
+    public function searchProductByName(Request $request){
+       $request->validate([
+        'name' => 'required|string|min:3'
+       ]);
+
+       $name = $request->name;
+       $products = Product::where('name' , "LIKE" , "%$name%")->get();
+       logger($products);
+       // وقفنا هنااااا ؟؟؟؟؟
     }
 }

@@ -27,6 +27,8 @@ Route::prefix('/user')->group(function () {
     Route::middleware('auth:sanctum', 'role.user')->group(function () {
 
         Route::get('/logout', [UserController::class, 'logout']);
+        Route::get('/products' , [ProductController2::class , "listActiveProducts"]); // to show active products only to make order
+        Route::post('/searchProduct' , [ProductController2::class , 'searchProductByName']); // to search product by name
     });
 });
 

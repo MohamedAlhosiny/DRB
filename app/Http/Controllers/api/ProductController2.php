@@ -30,7 +30,7 @@ class ProductController2 extends Controller
 
 
 
-    
+
     public function show(string $id)
     {
 
@@ -203,8 +203,16 @@ class ProductController2 extends Controller
        ]);
 
        $name = $request->name;
-       $products = Product::where('name' , "LIKE" , "%$name%")->get();
-       logger($products);
-       // وقفنا هنااااا ؟؟؟؟؟
+       $products = Product::where('name' , "LIKE" , "%$name%")->get(['id' , 'name' , 'status' , 'price', 'category_id']);
+    //    logger($products);
+
+    foreach ($products as $productSearch ) {
+         if ($productSearch->status == 'active' ) {
+        return $this->successResponse($products, 'products found with name like ' . $name , 200);
+    }else {
+        return $this->errorResponse(null, 'no active products found with name like ' . $name , 404);
     }
+    }
+    }
+
 }
